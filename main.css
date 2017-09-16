@@ -1,20 +1,17 @@
-/* canvas { */
-/*     border:3px solid #2C2C2B; [> 1px border around canvas <] */
-/*     background-color:#fff; */
+canvas {border:1px;}
+
+/* #cursor { */
+/*     position: absolute; */
+/*     background: url(cursor.png) no-repeat; */
+/*     height: 300px; */
+/*     width: 300px; */
+/*     border: 1px; */
 /* } */
-
-#cursor {
-	position: absolute;
-	background: url(cursor.png) no-repeat;
-	height: 300px;
-	width: 300px;
-	border: 1px;
-}
-
-#map {
-	position: relative;
-	border: 3px solid black;
-	height:	360px;
-	width: 480px;
-}
+/*  */
+/* #map { */
+/*     position: relative; */
+/*     border: 3px solid black; */
+/*     height:	360px; */
+/*     width: 480px; */
+/* } */
 
