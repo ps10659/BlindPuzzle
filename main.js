@@ -249,17 +249,17 @@ deadPuzzle = function(width, height) {
 }
 
 randomPuzzle = function(width, height) {
-	startPointIdx = Math.floor(Math.random() * width * height)
-	endPointIdx = Math.floor(Math.random() * (width * height - 1))
-	if(endPointIdx >= startPointIdx ) endPointIdx++ 
+	start = Math.floor(Math.random() * width * height)
+	end = Math.floor(Math.random() * (width * height - 1))
+	if(end >= start ) end++ 
 	
 	startPoint = {
-		x: startPointIdx % width,
-		y: Math.floor(startPointIdx / width),
+		x: start % width,
+		y: Math.floor(start / width),
 	}
 	endPoint = {
-		x: endPointIdx % width,
-		y: Math.floor(endPointIdx / width),
+		x: end % width,
+		y: Math.floor(end / width),
 	}
 
 	map = Array(width * height)
@@ -284,44 +284,122 @@ randomPuzzle = function(width, height) {
 	}
 
 	return { 
-		width: this.puzzleWidth,
-		height: this.puzzleHeight,
+		width: width,
+		height: height,
 		map: map, 
 		startPoint: startPoint,
 		endPoint: endPoint,
 	}
 }
 
-randomBfsPuzzle = function(width, height) {
-	startPointIdx = Math.floor(Math.random() * width * height)
-	endPointIdx = Math.floor(Math.random() * (width * height - 1))
-	if(endPointIdx >= startPointIdx ) endPointIdx++ 
+randomBfsPuzzle = function(w, h) {
+	start = Math.floor(Math.random() * w * h)
+	end = Math.floor(Math.random() * (w * h - 1))
+	if(end >= start ) end++ 
 
 	startPoint = {
-		x: startPointIdx % width,
-		y: Math.floor(startPointIdx / width),
+		x: start % w,
+		y: Math.floor(start / w),
 	}
 	endPoint = {
-		x: endPointIdx % width,
-		y: Math.floor(endPointIdx / width),
+		x: end % w,
+		y: Math.floor(end / w),
 	}
 
-	map = Array(width * height)
-	for(i=0; i<width*height; i++){
+	map = Array(w * h)
+	for(i=0; i<w*h; i++){
 		map[i] = 0
 	}
 
+	queue = {}
+	past = [start]
+	queue[start] = getAvailable(past, start, w, h) 
+	curr = start
+	while(past.length < w * h) {
+		now = pickNow(queue)
+		next = pickNext(now, queue[now], w)
+		nx = next % w
+		ny = Math.floor(next / w)
+		past.push(next)
+		map[curr] += pathNum(curr, next, w)
+		map[next] += pathNum(next, curr, w)
+		queue[next] = getAvailable(past, next, w, h)
+		if(nx + 1 < w && next+1 in queue) {
+			queue[next+1] -= 1
+			if(queue[next+1] == 0) delete queue[next+1]
+		}
+		if(ny + 1 < h && next+w in queue) {
+			queue[next+w] -= 2 
+			if(queue[next+w] == 0) delete queue[next+w]
+		}
+		if(nx - 1 >= 0 && next-1 in queue) {
+			queue[next-1] -= 4 
+			if(queue[next-1] == 0) delete queue[next-1]
+		}
+		if(ny - 1 >= 0 && next-w in queue) {
+			queue[next-w] -= 8
+			if(queue[next-w] == 0) delete queue[next-w]
+		}
+	}
+
+	// queue = Object.assign({}, queue, )
 	
 
-
 	return { 
-		width: this.puzzleWidth,
-		height: this.puzzleHeight,
+		width: w,
+		height: h,
 		map: map, 
 		startPoint: startPoint,
 		endPoint: endPoint,
 	}
 }
+
+getAvailable = function(s, p, w, h) {
+	ret = 0
+	x = p % w
+	y = Math.floor(p % w)
+
+	if(x-1 >= 0 && !(toIdx(x-1, y, w) in s)) ret += 1
+	if(y-1 >= 0 && !(toIdx(x, y-1, w) in s)) ret += 2
+	if(x+1 < w && !(toIdx(x+1, y, w) in s)) ret += 4
+	if(y+1 < h && !(toIdx(x, y+1, w) in s)) ret += 8
+	
+	return ret
+}
+
+pickNow = function(obj) {
+	keys = Object.keys(obj);
+	return Number(keys[Math.floor(keys.length * Math.random())]);
+}	
+
+pickNext = function(now, val, w) {
+	x = now % w
+	y = Math.floor(now / w)
+	okNext = []
+	if((val & 1) == 1) okNext.push(x - 1 + y * w)
+	if((val & 2) == 2) okNext.push(x + (y-1) * w)
+	if((val & 4) == 4) okNext.push(x + 1 + y * w)
+	if((val & 8) == 8) okNext.push(x + (y+1) * w)
+
+	return okNext[Math.floor(Math.random() * okNext.length)]
+}
+
+pathNum = function(p, q, w) {
+	px = p % w
+	py = Math.floor(p / w)
+	qx = q % w
+	qy = Math.floor(q / w)
+	
+	if(qx == px-1) return 1
+	if(qy == py-1) return 2
+	if(qx == px+1) return 4
+	if(qy == py+1) return 8
+}
+
+toIdx = function(x, y, w) {
+	return x + y * w
+}
+
 
 // GameEngine.prototype.stopGame = function() {
 //     clearInterval(this.engine)
@@ -330,6 +408,6 @@ randomBfsPuzzle = function(width, height) {
 var game = new GameEngine(6, 5);
 var view = new View();
 
-game.constructPuzzleMethod = randomPuzzle;
-// game.constructPuzzleMethod = randomBfsPuzzle;
+// game.constructPuzzleMethod = randomPuzzle;
+game.constructPuzzleMethod = randomBfsPuzzle;
 game.startGame();
